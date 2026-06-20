@@ -43,6 +43,9 @@
     FINALE_WALL_TILE_STAGGER: 58,
     DETAIL_EXIT_DURATION: 320,
     AUDIO_VISUAL_OFFSET: 0,
+    CRITICAL_IMAGE_COUNT: 6,
+    IMAGE_PRELOAD_GAP: 140,
+    BACKGROUND_PRELOAD_DELAY: 650,
     PRELOAD_TIMEOUT: 10000 // 图片预加载超时时间
   };
 
@@ -89,6 +92,9 @@
   var introTimer = null;
   var loveBurstTimer = null;
   var preloadTimeoutTimer = null;
+  var preloadQueueTimer = null;
+  var preloadedImages = {};
+  var remainingPreloadStarted = false;
 
   // DOM 缓存
   var domCache = {
@@ -126,6 +132,21 @@
     }
 
     prepareGsap();
+
+    if (!validateData()) {
+      showError(TEXT.dataError);
+      return;
+    }
+
+    createSplashScreen();
+    createMusicButton();
+    scheduleCriticalImagePreload();
+    isInitialized = true;
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('beforeunload', cleanup);
+    return;
 
     // 数据检查
     if (!validateData()) {
@@ -229,6 +250,79 @@
   }
 
   // ===== 启动层（修复隐藏问题） =====
+  function runWhenIdle(callback, timeout) {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(callback, { timeout: timeout || 1200 });
+      return;
+    }
+    window.setTimeout(callback, Math.min(timeout || 1200, 800));
+  }
+
+  function ensureMainExperience() {
+    if (domCache.mainScene) return;
+
+    createMainScene();
+    createDetailScene();
+    cacheDomElements();
+  }
+
+  function preloadImage(src) {
+    if (!src || preloadedImages[src]) return Promise.resolve();
+    preloadedImages[src] = 'loading';
+
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.decoding = 'async';
+      img.onload = function () {
+        preloadedImages[src] = true;
+        resolve();
+      };
+      img.onerror = function () {
+        preloadedImages[src] = 'error';
+        resolve();
+      };
+      img.src = src;
+    });
+  }
+
+  function preloadImagesInOrder(items, startIndex) {
+    var index = startIndex || 0;
+    if (!items || index >= items.length) return;
+
+    preloadImage(items[index].image).then(function () {
+      preloadQueueTimer = window.setTimeout(function () {
+        preloadImagesInOrder(items, index + 1);
+      }, CONFIG.IMAGE_PRELOAD_GAP);
+    });
+  }
+
+  function scheduleCriticalImagePreload() {
+    runWhenIdle(function () {
+      preloadImagesInOrder(storyData.slice(0, CONFIG.CRITICAL_IMAGE_COUNT), 0);
+    }, CONFIG.BACKGROUND_PRELOAD_DELAY);
+  }
+
+  function scheduleRemainingImagePreload() {
+    if (remainingPreloadStarted) return;
+    remainingPreloadStarted = true;
+
+    runWhenIdle(function () {
+      preloadImagesInOrder(storyData.slice(CONFIG.CRITICAL_IMAGE_COUNT), 0);
+    }, 1800);
+  }
+
+  function ensureNodeAssets(index) {
+    var item = storyData[index];
+    var node = domCache.nodes[index];
+    if (!item || !node || node.dataset.assetsReady === '1') return;
+
+    var bg = node.querySelector('.node-bg');
+    var img = node.querySelector('.node-image');
+    if (bg) bg.style.backgroundImage = 'url(' + item.image + ')';
+    if (img && img.getAttribute('src') !== item.image) img.src = item.image;
+    node.dataset.assetsReady = '1';
+  }
+
   function createSplashScreen() {
     var splash = document.createElement('div');
     splash.id = 'splash';
@@ -247,11 +341,13 @@
       splash.style.pointerEvents = 'none';
 
       playSplashExit(splash);
+      ensureMainExperience();
 
       // 启动主场景
       showMainScene();
       startIntroSequence();
       initAndPlayMusic();
+      scheduleRemainingImagePreload();
     });
   }
 
@@ -291,6 +387,8 @@
       audioElement = new Audio(CONFIG.MUSIC_SRC);
       audioElement.loop = CONFIG.MUSIC_LOOP;
       audioElement.volume = CONFIG.MUSIC_VOLUME;
+      audioElement.preload = 'auto';
+      audioElement.setAttribute('playsinline', '');
 
       // 添加错误监听
       audioElement.addEventListener('error', function(e) {
@@ -418,7 +516,7 @@
         '--scatter-x:' + scatter[0] + ';--scatter-y:' + scatter[1] + ';--scatter-rot:' + scatter[2] + ';' +
         '--intro-delay:' + (index * 32) + 'ms">' +
           '<div class="intro-photo-bg" style="background-image:url(' + item.image + ')"></div>' +
-          '<img src="' + item.image + '" alt="">' +
+          '<img src="' + item.image + '" alt="" decoding="async" fetchpriority="' + (index < 2 ? 'high' : 'low') + '">' +
         '</figure>';
     });
 
@@ -568,7 +666,7 @@
         '--float-delay:' + layout.delay + 's;">' +
         '<span class="finale-tile-drift">' +
           '<span class="finale-tile-frame">' +
-            '<img src="' + item.image + '" alt="" loading="eager">' +
+            '<img src="' + item.image + '" alt="" loading="lazy" decoding="async" fetchpriority="low">' +
             '<span class="finale-tile-shine"></span>' +
             '<span class="finale-tile-meta">' +
               '<span class="finale-tile-index">' + String(index + 1).padStart(2, '0') + '</span>' +
@@ -927,14 +1025,18 @@
 
       var bg = document.createElement('div');
       bg.className = 'node-bg';
-      bg.style.backgroundImage = 'url(' + item.image + ')';
+      bg.dataset.src = item.image;
 
       var img = document.createElement('img');
       img.className = 'node-image';
-      img.src = item.image;
+      img.dataset.src = item.image;
       img.alt = item.title;
       img.draggable = false;
       img.loading = 'eager'; // 优先加载
+
+      img.decoding = 'async';
+      img.loading = index < 2 ? 'eager' : 'lazy';
+      img.fetchPriority = index < 2 ? 'high' : 'low';
 
       var shine = document.createElement('div');
       shine.className = 'node-shine';
@@ -1077,6 +1179,10 @@
     var positions = getSequencePositions(rect, cycleIndex);
     var showPrevious = prevIndex !== -1 && !timing.isEntry && phase < timing.flightDuration + 360;
 
+    ensureNodeAssets(cycleIndex);
+    if (nextIndex !== -1) ensureNodeAssets(nextIndex);
+    if (showPrevious && prevIndex !== -1) ensureNodeAssets(prevIndex);
+
     updateSceneTone(cycleIndex, phase, timing);
     updateFinaleWall(elapsed, total);
     updatePlane(rect, phase, positions.main, positions.planeTarget, timing);
@@ -1096,6 +1202,7 @@
           ? getNextNodeState(phase, positions, renderElapsed, timing)
           : getPreviousNodeState(phase, positions, renderElapsed, timing));
 
+      node.dataset.hidden = '0';
       node.style.display = 'block';
       node.classList.toggle('node-current', state.role === 'current');
       node.classList.toggle('node-next', state.role === 'next');
@@ -1107,7 +1214,7 @@
         Math.round(state.z) + 'px) rotateX(' + state.rotateX.toFixed(2) + 'deg) rotateY(' + state.rotateY.toFixed(2) + 'deg) ' +
         'rotateZ(' + state.rotateZ.toFixed(2) + 'deg) scale(' + state.scale.toFixed(3) + ')';
       node.style.opacity = state.opacity.toFixed(3);
-      node.style.filter = 'blur(' + state.blur.toFixed(2) + 'px)';
+      node.style.filter = state.blur < 0.05 ? 'none' : 'blur(' + state.blur.toFixed(1) + 'px)';
       node.style.zIndex = state.zIndex;
       node.style.setProperty('--node-focus', state.focus.toFixed(3));
       node.style.setProperty('--node-depth', state.depth.toFixed(3));
@@ -1127,6 +1234,9 @@
   }
 
   function hideNode(node) {
+    if (node.dataset.hidden === '1') return;
+
+    node.dataset.hidden = '1';
     node.style.display = 'none';
     node.style.pointerEvents = 'none';
     node.style.opacity = '0';
@@ -1177,6 +1287,21 @@
     var isActive = progress > 0;
     var isReady = progress > 0.92;
 
+    if (!isActive) {
+      if (wall.dataset.finaleState !== 'idle') {
+        scene.classList.remove('finale-wall-active');
+        wall.classList.remove('finale-wall-ready');
+        wall.setAttribute('aria-hidden', 'true');
+        wall.style.opacity = '0';
+        wall.style.pointerEvents = 'none';
+        scene.style.setProperty('--finale-stage-opacity', '1');
+        wall.dataset.finaleState = 'idle';
+      }
+      return;
+    }
+
+    wall.dataset.finaleState = isReady ? 'ready' : 'active';
+
     scene.classList.toggle('finale-wall-active', isActive);
     wall.classList.toggle('finale-wall-ready', isReady);
     wall.setAttribute('aria-hidden', isActive ? 'false' : 'true');
@@ -1191,7 +1316,8 @@
       var driftY = (1 - local) * (index % 2 ? 34 : 26);
       var scale = 0.72 + local * 0.28;
       tile.style.opacity = (local * 0.98).toFixed(3);
-      tile.style.filter = 'blur(' + ((1 - local) * 5).toFixed(2) + 'px)';
+      var tileBlur = (1 - local) * 5;
+      tile.style.filter = tileBlur < 0.08 ? 'none' : 'blur(' + tileBlur.toFixed(1) + 'px)';
       tile.style.zIndex = String(100 + Math.round(local * (Number(tile.style.getPropertyValue('--tile-layer')) || 10)));
       tile.style.transform =
         'translate3d(calc(-50% + ' + driftX.toFixed(1) + 'px), calc(-50% + ' + driftY.toFixed(1) + 'px), calc(var(--tile-z, 0px) * ' + local.toFixed(3) + ')) ' +
@@ -1812,6 +1938,7 @@
     if (pendingDetailTimer) clearTimeout(pendingDetailTimer);
     if (loveBurstTimer) clearTimeout(loveBurstTimer);
     if (preloadTimeoutTimer) clearTimeout(preloadTimeoutTimer);
+    if (preloadQueueTimer) clearTimeout(preloadQueueTimer);
 
     // 停止动画
     if (flightFrame) cancelAnimationFrame(flightFrame);

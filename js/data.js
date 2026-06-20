@@ -3,7 +3,7 @@ const storyData = [
     id: 1,
     title: '定格在故事的开篇',
     date: '2023.11.20',
-    image: './图片/1.jpg',
+    image: './assets/images/1.jpg',
     story: '这是我们俩自己拍的第一张合照，在龙脊山山顶上的夜晚。'
   },
   {
@@ -11,35 +11,35 @@ const storyData = [
     title: '在一起的第一天',
     date: '2023.11.25',
     frame: '1078 / 724',
-    image: './图片/2.jpg',
+    image: './assets/images/2.jpg',
     story: '从这一天起，我们把彼此，写进了未来所有的明天里。'
   },
   {
     id: 3,
     title: '你为我过的第一次生日',
     date: '2024.04.03',
-    image: './图片/3.jpg',
+    image: './assets/images/3.jpg',
     story: '你为我点燃的第一根蜡烛，照亮了我二十二岁的整个夏天。'
   },
   {
     id: 4,
     title: '大二的最后一天',
     date: '2024.07.06',
-    image: './图片/4.jpg',
+    image: './assets/images/4.jpg',
     story: '这是大二暑假我准备回家的前一天我们的合照。'
   },
   {
     id: 5,
     title: '永远的浪漫',
     date: '2024.11.30',
-    image: './图片/5.jpg',
+    image: './assets/images/5.jpg',
     story: '在解放碑的霓虹下，我们用八人行的欢笑，提前预演了一场关于永远的浪漫。'
   },
   {
     id: 6,
     title: '镜头里的故事感',
     date: '2024.12.16',
-    image: './图片/6.jpg',
+    image: './assets/images/6.jpg',
     story: '旅游第二站长沙，你镜头里的故事感。'
   },
   {
@@ -47,7 +47,7 @@ const storyData = [
     title: '一起去看的打铁花',
     date: '2025.02.21',
     frame: '1077 / 769',
-    image: './图片/7.jpg',
+    image: './assets/images/7.jpg',
     story: '铁水腾空化作漫天星火，我们仰头许下的愿望，都落在了彼此的眼里。'
   },
   {
@@ -55,56 +55,56 @@ const storyData = [
     title: '旅游第三站·柳州',
     date: '2025.04.19',
     frame: '1077 / 893',
-    image: './图片/8.jpg',
+    image: './assets/images/8.jpg',
     story: '这个遍地电瓶车和螺蛳粉的城市，是我们一起走过的第三个城市。'
   },
   {
     id: 9,
     title: '第二个520节日',
     date: '2025.05.20',
-    image: './图片/9.jpg',
+    image: './assets/images/9.jpg',
     story: '这是我们一起走过的第二个520节日，电梯里的合照。'
   },
   {
     id: 10,
     title: '陪你过的第二个生日',
     date: '2025.10.26',
-    image: './图片/10.jpg',
+    image: './assets/images/10.jpg',
     story: '今天是你的22岁生日，你是今天的女主角。'
   },
   {
     id: 11,
     title: '我们的两周年',
     date: '2025.11.23',
-    image: './图片/11.jpg',
+    image: './assets/images/11.jpg',
     story: '两年前的我们大概不会想到，今天的我们，会让“永远”这个词，变得如此具体。'
   },
   {
     id: 12,
     title: '秋天里的浪漫',
     date: '2025.11.25',
-    image: './图片/12.jpg',
+    image: './assets/images/12.jpg',
     story: '两周年这天，我们用银杏叶摆的爱心。'
   },
   {
     id: 13,
     title: '最后一次在操场上散步',
     date: '2025.11.25',
-    image: './图片/13.jpg',
+    image: './assets/images/13.jpg',
     story: '操场上的风还和从前一样，我们手牵着手走的很慢。'
   },
   {
     id: 14,
     title: '第四座城市',
     date: '2025.12.06',
-    image: './图片/14.jpg',
+    image: './assets/images/14.jpg',
     story: '西安的夜色温柔如水，我们贴在一起的笑脸，是这座古城里最年轻的故事。'
   },
   {
     id: 15,
     title: '我们毕业了',
     date: '2026.05.17',
-    image: './图片/15.jpg',
+    image: './assets/images/15.jpg',
     story: '我们毕业了，校园恋情告一段落，我们的明天还在继续。'
   }
 ];

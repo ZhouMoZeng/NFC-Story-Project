@@ -102,6 +102,7 @@ button {
   overflow: hidden;
   background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   isolation: isolate;
+  contain: layout paint style;
 }
 
 @media (min-width: 768px) {
@@ -275,6 +276,7 @@ button {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  contain: layout paint style;
   background:
     radial-gradient(ellipse 60% 40% at 70% 20%, rgba(0, 212, 170, 0.08), transparent),
     radial-gradient(ellipse 50% 30% at 30% 80%, rgba(255, 107, 157, 0.06), transparent),
@@ -337,6 +339,7 @@ button {
   z-index: 3;
   overflow: hidden;
   pointer-events: none;
+  contain: layout paint style;
 }
 
 .beat-field {
@@ -347,6 +350,7 @@ button {
   pointer-events: none;
   opacity: 0.72;
   mix-blend-mode: screen;
+  contain: layout paint style;
 }
 
 .beat-grid {
@@ -1024,6 +1028,8 @@ button {
   transform-origin: center center;
   transform-style: preserve-3d;
   isolation: isolate;
+  contain: layout paint style;
+  backface-visibility: hidden;
   will-change: transform, opacity, filter;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -1129,6 +1135,7 @@ button {
   filter: blur(17px) saturate(1.12) brightness(0.9);
   opacity: 0.68;
   transform: translate3d(var(--node-bg-pan-x, 0px), var(--node-bg-pan-y, 0px), 0) scale(var(--node-bg-scale, 1.16));
+  backface-visibility: hidden;
   will-change: transform, opacity;
 }
 
@@ -1145,6 +1152,7 @@ button {
   border-radius: calc(var(--radius-md) - 2px);
   background: rgba(0, 0, 0, 0.16);
   transform: translate3d(var(--node-pan-x, 0px), var(--node-pan-y, 0px), 0) scale(var(--node-image-scale, 1));
+  backface-visibility: hidden;
   will-change: transform;
 }
 
@@ -1322,6 +1330,7 @@ button {
   perspective: 900px;
   perspective-origin: 50% 48%;
   transform-style: preserve-3d;
+  contain: layout paint style;
   transition: opacity 280ms ease;
 }
 
@@ -1413,6 +1422,7 @@ button {
     0 0 18px rgba(var(--scene-accent-rgb, 255, 107, 157), 0.16),
     0 0 30px rgba(var(--scene-second-rgb, 76, 201, 240), 0.12);
   transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .finale-tile:hover,
@@ -1527,6 +1537,7 @@ button {
   z-index: 100;
   flex-direction: column;
   overflow-y: auto;
+  contain: layout paint style;
   background:
     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 212, 170, 0.1), transparent 50%),
     radial-gradient(ellipse 60% 40% at 80% 20%, rgba(255, 107, 157, 0.08), transparent 40%),
@@ -1787,6 +1798,7 @@ button {
   overflow: hidden;
   pointer-events: none;
   opacity: 0;
+  contain: layout paint style;
 }
 
 .main-scene.love-burst-active .love-burst-layer {
@@ -2453,6 +2465,7 @@ button {
   pointer-events: none;
   perspective: 800px;
   perspective-origin: 50% 45%;
+  contain: layout paint style;
 }
 
 .intro-veil,
@@ -2560,6 +2573,8 @@ button {
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   transform: translate(calc(-50% + var(--start-x)), calc(-50% + var(--start-y))) rotate(var(--start-rot)) scale(0.5);
   transform-origin: center center;
+  contain: layout paint style;
+  backface-visibility: hidden;
   will-change: transform, opacity, filter;
 }
 
@@ -2583,6 +2598,7 @@ button {
   filter: blur(15px) saturate(1.1) brightness(0.9);
   opacity: 0.56;
   transform: scale(1.16);
+  backface-visibility: hidden;
 }
 
 .intro-photo img {
